@@ -6,7 +6,7 @@ const AdminPage = () => {
       {/* LEFT */}
       <div className="lg:w-2/3">
         {/* USER CARD */}
-        <div className="flex flex-col gap-4 justify-between lg:flex-row">
+        <div className="flex justify-between gap-4 flex-wrap">
           <UserCard type="student" />
           <UserCard type="teacher" />
           <UserCard type="parent" />
