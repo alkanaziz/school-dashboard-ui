@@ -79,7 +79,7 @@ const FinanceChart = () => {
   return (
     <div className="size-full rounded-xl bg-white p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">Students</h3>
+        <h3 className="text-xl font-semibold">Finance</h3>
         <Image src="/moreDark.png" alt="more icon" width={20} height={20} />
       </div>
       <ResponsiveContainer width="100%" height="90%">
