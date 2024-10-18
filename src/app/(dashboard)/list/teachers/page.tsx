@@ -66,24 +66,20 @@ const TeacherListPage = () => {
           <span className="text-sm text-gray-500">{teacher?.email}</span>
         </div>
       </td>
-      <td>
-        <span className="hidden md:table-cell">{teacher.teacherId}</span>
+      <td className="hidden md:table-cell">
+        <span>{teacher.teacherId}</span>
       </td>
-      <td>
-        <span className="hidden md:table-cell">
-          {teacher.subjects.join(", ")}
-        </span>
+      <td className="hidden md:table-cell">
+        <span>{teacher.subjects.join(", ")}</span>
       </td>
-      <td>
-        <span className="hidden md:table-cell">
-          {teacher.classes.join(", ")}
-        </span>
+      <td className="hidden md:table-cell">
+        <span>{teacher.classes.join(", ")}</span>
       </td>
-      <td>
-        <span className="hidden lg:table-cell">{teacher.phone}</span>
+      <td className="hidden lg:table-cell">
+        <span>{teacher.phone}</span>
       </td>
-      <td>
-        <span className="hidden lg:table-cell">{teacher.address}</span>
+      <td className="hidden lg:table-cell">
+        <span>{teacher.address}</span>
       </td>
       <td>
         <div className="flex items-center gap-2">
