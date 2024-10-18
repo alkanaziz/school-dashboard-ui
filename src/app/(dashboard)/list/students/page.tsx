@@ -61,17 +61,17 @@ const StudentListPage = () => {
           <span className="text-sm text-gray-500">{student?.class}</span>
         </div>
       </td>
-      <td>
-        <span className="hidden md:table-cell">{student.studentId}</span>
+      <td className="hidden md:table-cell">
+        <span>{student.studentId}</span>
       </td>
-      <td>
-        <span className="hidden md:table-cell">{student.grade}</span>
+      <td className="hidden md:table-cell">
+        <span>{student.grade}</span>
       </td>
-      <td>
-        <span className="hidden lg:table-cell">{student.phone}</span>
+      <td className="hidden lg:table-cell">
+        <span>{student.phone}</span>
       </td>
-      <td>
-        <span className="hidden lg:table-cell">{student.address}</span>
+      <td className="hidden lg:table-cell">
+        <span>{student.address}</span>
       </td>
       <td>
         <div className="flex items-center gap-2">
