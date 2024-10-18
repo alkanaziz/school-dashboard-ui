@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
@@ -32,22 +32,32 @@ const events = [
 
 const EventCalendar = () => {
   const [value, onChange] = useState<Value>(new Date());
+  const [locale, setLocale] = useState("en");
+
+  useEffect(() => {
+    // Set the locale based on the user's preference or a default
+    const userLocale = navigator.language || "de";
+    setLocale(userLocale);
+  }, []);
 
   return (
     <div className="rounded-lg bg-white p-4">
-      <Calendar onChange={onChange} value={value} />
+      <Calendar onChange={onChange} value={value} locale={locale} />
       <div className="flex items-center justify-between">
         <h2 className="my-4 text-xl font-semibold">Events</h2>
         <Image src="/moreDark.png" alt="more icon" width={20} height={20} />
       </div>
       <div className="flex flex-col gap-4">
         {events.map((event) => (
-          <div key={event.id} className="p-5 rounded-md border-2 border-gray-100 border-t-4 odd:border-t-privatSky even:border-t-privatPurple">
+          <div
+            key={event.id}
+            className="rounded-md border-2 border-t-4 border-gray-100 p-5 odd:border-t-privatSky even:border-t-privatPurple"
+          >
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-slate-600">{event.title}</h3>
               <span className="text-xs text-slate-400">{event.time}</span>
             </div>
-            <p className="text-sm mt-2 text-slate-400">{event.description}</p>
+            <p className="mt-2 text-sm text-slate-400">{event.description}</p>
           </div>
         ))}
       </div>
