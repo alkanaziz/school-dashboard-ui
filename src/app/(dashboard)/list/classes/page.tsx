@@ -76,7 +76,7 @@ const ClassListPage = () => {
     <div className="m-4 mt-0 flex-1 rounded-md bg-white p-4">
       {/* TOP SECTION */}
       <div className="flex justify-between">
-        <h1 className="hidden text-lg font-semibold md:block">All Students</h1>
+        <h1 className="hidden text-lg font-semibold md:block">All Classes</h1>
         <div className="flex w-full flex-col items-center justify-center gap-4 md:w-auto md:flex-row">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
