@@ -10,7 +10,7 @@ const Table = ({
   data: any[];
 }) => {
   return (
-    <table className="w-full">
+    <table className="mt-5 w-full">
       <thead>
         <tr className="text-left text-sm text-gray-500">
           {columns.map((column) => (
