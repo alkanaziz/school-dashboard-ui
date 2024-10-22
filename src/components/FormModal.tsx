@@ -35,6 +35,21 @@ const FormModal = ({
         : "bg-privatPurple";
 
   const [open, setOpen] = useState(false);
+
+  const Form = () => {
+    return type === "delete" && id ? (
+      <form className="flex flex-col gap-4 p-4">
+        <span className="text-center font-medium">
+          All data will be lost. Are you sure to delete this {table}?
+        </span>
+        <button className="w-max self-center rounded-md border-none bg-red-700 px-4 py-2 font-medium text-white hover:bg-red-600">
+          Delete
+        </button>
+      </form>
+    ) : (
+      "Create or update form"
+    );
+  };
   return (
     <>
       <button
@@ -49,8 +64,21 @@ const FormModal = ({
         />
       </button>
       {open && (
-        <div className="absolute z-50 left-0 top-0 flex h-screen w-screen items-center justify-center bg-slate-950 bg-opacity-60">
-          <div className="m-auto rounded-md bg-white p-2">Hello</div>
+        <div className="absolute left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-slate-950 bg-opacity-60">
+          <div className="relative w-[90%] rounded-md bg-white p-4 md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%]">
+            <Form />
+            <div
+              className="absolute right-4 top-4 cursor-pointer"
+              onClick={() => setOpen(false)}
+            >
+              <Image
+                src="/close.png"
+                alt="close button"
+                width={14}
+                height={14}
+              />
+            </div>
+          </div>
         </div>
       )}
     </>
