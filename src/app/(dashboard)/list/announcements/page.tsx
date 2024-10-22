@@ -3,7 +3,7 @@ import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
 import { role, announcementsData } from "@/lib/data";
-import Link from "next/link";
+import FormModal from "@/components/FormModal";
 
 type Announcement = {
   id: number;
@@ -43,20 +43,22 @@ const AnnouncementsListPage = () => {
       </td>
       <td>
         <div className="flex items-center gap-2">
-          <Link href={`/list/students/${item.id}`}>
-            <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
+          {role === "admin" && (
+            <>
+              {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
               <Image src="/edit.png" alt="edit icon" width={16} height={16} />
             </button>
-          </Link>
-          {role === "admin" && (
             <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
-              <Image
+                <Image
                 src="/delete.png"
                 alt="delete icon"
                 width={16}
                 height={16}
-              />
-            </button>
+                />
+                </button> */}
+              <FormModal table="announcement" type="update" data={item} />
+              <FormModal table="announcement" type="delete" id={item.id} />
+            </>
           )}
         </div>
       </td>
@@ -67,7 +69,9 @@ const AnnouncementsListPage = () => {
     <div className="m-4 mt-0 flex-1 rounded-md bg-white p-4">
       {/* TOP SECTION */}
       <div className="flex justify-between">
-        <h1 className="hidden text-lg font-semibold md:block">All Announcements</h1>
+        <h1 className="hidden text-lg font-semibold md:block">
+          All Announcements
+        </h1>
         <div className="flex w-full flex-col items-center justify-center gap-4 md:w-auto md:flex-row">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
@@ -83,9 +87,10 @@ const AnnouncementsListPage = () => {
               <Image src="/sort.png" alt="sort icon" width={16} height={16} />
             </button>
             {role === "admin" && (
-              <button className="rounded-full bg-privatYellow p-2">
-                <Image src="/plus.png" alt="plus icon" width={16} height={16} />
-              </button>
+              // <button className="rounded-full bg-privatYellow p-2">
+              //   <Image src="/plus.png" alt="plus icon" width={16} height={16} />
+              // </button>
+              <FormModal table="announcement" type="create" />
             )}
           </div>
         </div>

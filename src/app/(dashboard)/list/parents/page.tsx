@@ -4,6 +4,7 @@ import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
 import { role, parentsData } from "@/lib/data";
 import Link from "next/link";
+import FormModal from "@/components/FormModal";
 
 type Parent = {
   id: number;
@@ -57,20 +58,22 @@ const ParentsListPage = () => {
       </td>
       <td>
         <div className="flex items-center gap-2">
-          <Link href={`/list/students/${parent.id}`}>
-            <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
-              <Image src="/edit.png" alt="edit icon" width={16} height={16} />
-            </button>
-          </Link>
           {role === "admin" && (
-            <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
-              <Image
-                src="/delete.png"
-                alt="delete icon"
-                width={16}
-                height={16}
-              />
-            </button>
+            <>
+              {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
+                <Image src="/edit.png" alt="edit icon" width={16} height={16} />
+              </button>
+              <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
+                <Image
+                  src="/delete.png"
+                  alt="delete icon"
+                  width={16}
+                  height={16}
+                />
+              </button> */}
+              <FormModal table="parent" type="update" data={parent} />
+              <FormModal table="parent" type="delete" id={parent.id} />
+            </>
           )}
         </div>
       </td>
@@ -97,9 +100,10 @@ const ParentsListPage = () => {
               <Image src="/sort.png" alt="sort icon" width={16} height={16} />
             </button>
             {role === "admin" && (
-              <button className="rounded-full bg-privatYellow p-2">
-                <Image src="/plus.png" alt="plus icon" width={16} height={16} />
-              </button>
+              // <button className="rounded-full bg-privatYellow p-2">
+              //   <Image src="/plus.png" alt="plus icon" width={16} height={16} />
+              // </button>
+              <FormModal table="parent" type="create" />
             )}
           </div>
         </div>
