@@ -13,7 +13,7 @@ const SingleTeacherPage = () => {
         <div className="flex flex-col gap-4 lg:flex-row">
           {/* USER INFO CARD  */}
           <div className="flex flex-1 gap-4 rounded-md bg-privatSky px-4 py-6">
-            <div className="flex w-1/3 items-center">
+            <div className="flex w-1/3 items-center justify-center">
               <Image
                 src="https://images.pexels.com/photos/2888150/pexels-photo-2888150.jpeg?auto=compress&cs=tinysrgb&w=1200"
                 className="size-36 rounded-full object-cover"
