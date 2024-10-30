@@ -20,29 +20,36 @@ const forms: {
   student: (type, data) => <StudentForm type={type} data={data} />,
 };
 
-const FormModal = ({
+type TableIdType = {
+  teacher: string;
+  student: string;
+  parent: string;
+  subject: number;
+  class: number;
+  lesson: number;
+  exam: number;
+  assignment: number;
+  result: number;
+  attendance: number;
+  event: number;
+  announcement: number;
+};
+
+type TableType = keyof TableIdType;
+
+interface FormModalProps<T extends TableType> {
+  table: T;
+  type: "create" | "update" | "delete";
+  data?: any;
+  id?: TableIdType[T];
+}
+
+const FormModal = <T extends TableType>({
   table,
   type,
   data,
   id,
-}: {
-  table:
-    | "teacher"
-    | "student"
-    | "parent"
-    | "subject"
-    | "class"
-    | "lesson"
-    | "exam"
-    | "assignment"
-    | "result"
-    | "attendance"
-    | "event"
-    | "announcement";
-  type: "create" | "update" | "delete";
-  data?: any;
-  id?: number;
-}) => {
+}: FormModalProps<T>) => {
   const size = type === "create" ? "size-8" : "size-7";
   const bgColor =
     type === "create"
