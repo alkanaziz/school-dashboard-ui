@@ -169,7 +169,7 @@ const SingleTeacherPage = () => {
             </Link>
             <Link
               className="rounded-md bg-privatPurpleLight p-3 text-gray-500"
-              href="/dashboard/list/teachers"
+              href={`/list/students?teacherId=${"teacher11"}`}
             >
               Teacher's Students
             </Link>
