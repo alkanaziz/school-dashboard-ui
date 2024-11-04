@@ -163,7 +163,7 @@ const SingleTeacherPage = () => {
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <Link
               className="rounded-md bg-privatSkyLight p-3 text-gray-500"
-              href="/dashboard/list/teachers"
+              href="/list/classes?supervisorId=teacher11"
             >
               Teacher's Classes
             </Link>
