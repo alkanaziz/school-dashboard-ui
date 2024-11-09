@@ -102,10 +102,10 @@ const ClassListPage = async ({
                 },
                 {
                   supervisor: {
-                    name: {
-                      contains: value,
-                      mode: "insensitive",
-                    },
+                    OR: [
+                      { name: { contains: value, mode: "insensitive" } },
+                      { surname: { contains: value, mode: "insensitive" } },
+                    ],
                   },
                 },
               ];
