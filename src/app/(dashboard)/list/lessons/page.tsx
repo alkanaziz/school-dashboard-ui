@@ -5,12 +5,12 @@ import Image from "next/image";
 import { role, lessonsData } from "@/lib/data";
 import Link from "next/link";
 import FormModal from "@/components/FormModal";
+import { Class, Lesson, Prisma, Subject, Teacher } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import { ITEM_PER_PAGE } from "@/lib/settings";
 
-type Lessons = {
-  id: number;
-  subject: string;
-  class: string;
-  teacher: string;
+type LessonList = Lesson & { subject: Subject } & { class: Class } & {
+  teacher: Teacher;
 };
 
 const columns = [
@@ -27,44 +27,108 @@ const columns = [
   { header: "Actions", accessor: "actions" },
 ];
 
-const LessonsListPage = () => {
-  const renderRow = (item: Lessons) => (
-    <tr
-      className="border-b border-gray-300 text-sm even:bg-slate-100 hover:bg-privatPurpleLight"
-      key={item.id}
-    >
-      <td className="flex items-center gap-4 p-4">
-        <h3 className="font-semibold">{item.subject}</h3>
-      </td>
-      <td>
-        <span>{item.class}</span>
-      </td>
-      <td className="hidden md:table-cell">
-        <span>{item.teacher}</span>
-      </td>
-      <td>
-        <div className="flex items-center gap-2">
-          {role === "admin" && (
-            <>
-              {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
-                <Image src="/edit.png" alt="edit icon" width={16} height={16} />
-              </button>
-              <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
-                <Image
-                  src="/delete.png"
-                  alt="delete icon"
-                  width={16}
-                  height={16}
-                />
-              </button> */}
-              <FormModal table="lesson" type="update" data={item} />
-              <FormModal table="lesson" type="delete" id={item.id} />
-            </>
-          )}
-        </div>
-      </td>
-    </tr>
-  );
+const renderRow = (item: LessonList) => (
+  <tr
+    className="border-b border-gray-300 text-sm even:bg-slate-100 hover:bg-privatPurpleLight"
+    key={item.id}
+  >
+    <td className="flex items-center gap-4 p-4">
+      <h3 className="font-semibold">{item.subject.name}</h3>
+    </td>
+    <td>
+      <span>{item.class.name}</span>
+    </td>
+    <td className="hidden md:table-cell">
+      <span>{item.teacher.name + " " + item.teacher.surname}</span>
+    </td>
+    <td>
+      <div className="flex items-center gap-2">
+        {role === "admin" && (
+          <>
+            {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
+              <Image src="/edit.png" alt="edit icon" width={16} height={16} />
+            </button>
+            <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
+              <Image
+                src="/delete.png"
+                alt="delete icon"
+                width={16}
+                height={16}
+              />
+            </button> */}
+            <FormModal table="lesson" type="update" data={item} />
+            <FormModal table="lesson" type="delete" id={item.id} />
+          </>
+        )}
+      </div>
+    </td>
+  </tr>
+);
+
+const LessonsListPage = async ({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+  const { page, ...queryParams } = searchParams;
+  const p = page ? parseInt(page) : 1;
+
+  // URL QUERY PARAMS CONDITION
+  const query: Prisma.LessonWhereInput = {};
+
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (!value) {
+        delete queryParams[key];
+      } else {
+        switch (key) {
+          case "teacherId":
+            query.teacherId = value;
+            break;
+          case "search":
+            {
+              query.OR = [
+                {
+                  name: {
+                    contains: value,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  teacher: {
+                    OR: [
+                      { name: { contains: value, mode: "insensitive" } },
+                      { surname: { contains: value, mode: "insensitive" } },
+                    ],
+                  },
+                },
+                { subject: { name: { contains: value, mode: "insensitive" } } },
+                { class: { name: { contains: value, mode: "insensitive" } } },
+              ];
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  const [lessons, count] = await prisma.$transaction([
+    prisma.lesson.findMany({
+      where: query,
+      include: {
+        subject: { select: { name: true } },
+        class: { select: { name: true } },
+        teacher: { select: { name: true, surname: true } },
+      },
+      take: ITEM_PER_PAGE,
+      skip: (p - 1) * ITEM_PER_PAGE,
+    }),
+    prisma.lesson.count({
+      where: query,
+    }),
+  ]);
 
   return (
     <div className="m-4 mt-0 flex-1 rounded-md bg-white p-4">
@@ -96,9 +160,9 @@ const LessonsListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={lessonsData} />
+      <Table columns={columns} renderRow={renderRow} data={lessons} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination page={p} count={count} />
     </div>
   );
 };
