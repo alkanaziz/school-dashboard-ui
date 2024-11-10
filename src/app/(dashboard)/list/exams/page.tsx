@@ -5,13 +5,16 @@ import Image from "next/image";
 import { role, examsData } from "@/lib/data";
 import Link from "next/link";
 import FormModal from "@/components/FormModal";
+import { Class, Exam, Lesson, Prisma, Subject, Teacher } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import { ITEM_PER_PAGE } from "@/lib/settings";
 
-type Exam = {
-  id: number;
-  subject: string;
-  class: string;
-  teacher: string;
-  date: string;
+type ExamList = Exam & {
+  lesson: {
+    subject: Subject;
+    class: Class;
+    teacher: Teacher;
+  };
 };
 
 const columns = [
@@ -33,47 +36,105 @@ const columns = [
   { header: "Actions", accessor: "actions" },
 ];
 
-const ExamsListPage = () => {
-  const renderRow = (item: Exam) => (
-    <tr
-      className="border-b border-gray-300 text-sm even:bg-slate-100 hover:bg-privatPurpleLight"
-      key={item.id}
-    >
-      <td className="flex items-center gap-4 p-4">
-        <h3 className="font-semibold">{item.subject}</h3>
-      </td>
-      <td>
-        <span>{item.class}</span>
-      </td>
-      <td className="hidden md:table-cell">
-        <span>{item.teacher}</span>
-      </td>
-      <td className="hidden md:table-cell">
-        <span>{item.date}</span>
-      </td>
-      <td>
-        <div className="flex items-center gap-2">
-          {role === "admin" && (
-            <>
-              {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
-                <Image src="/edit.png" alt="edit icon" width={16} height={16} />
-              </button>
-              <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
-                <Image
-                  src="/delete.png"
-                  alt="delete icon"
-                  width={16}
-                  height={16}
-                />
-              </button> */}
-              <FormModal table="exam" type="update" data={item} />
-              <FormModal table="exam" type="delete" id={item.id} />
-            </>
-          )}
-        </div>
-      </td>
-    </tr>
-  );
+const renderRow = (item: ExamList) => (
+  <tr
+    className="border-b border-gray-300 text-sm even:bg-slate-100 hover:bg-privatPurpleLight"
+    key={item.id}
+  >
+    <td className="flex items-center gap-4 p-4">
+      <h3 className="font-semibold">{item.lesson.subject.name}</h3>
+    </td>
+    <td>
+      <span>{item.lesson.class.name}</span>
+    </td>
+    <td className="hidden md:table-cell">
+      <span>
+        {item.lesson.teacher.name + " " + item.lesson.teacher.surname}
+      </span>
+    </td>
+    <td className="hidden md:table-cell">
+      <span>{new Intl.DateTimeFormat("de-DE").format(item.startTime)}</span>
+    </td>
+    <td>
+      <div className="flex items-center gap-2">
+        {role === "admin" && (
+          <>
+            {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
+              <Image src="/edit.png" alt="edit icon" width={16} height={16} />
+            </button>
+            <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
+              <Image
+                src="/delete.png"
+                alt="delete icon"
+                width={16}
+                height={16}
+              />
+            </button> */}
+            <FormModal table="exam" type="update" data={item} />
+            <FormModal table="exam" type="delete" id={item.id} />
+          </>
+        )}
+      </div>
+    </td>
+  </tr>
+);
+
+const ExamsListPage = async ({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+  const { page, ...queryParams } = searchParams;
+  const p = page ? parseInt(page) : 1;
+
+  // URL QUERY PARAMS CONDITION
+  const query: Prisma.ExamWhereInput = {};
+
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (!value) {
+        delete queryParams[key];
+      } else {
+        switch (key) {
+          case "classId":
+            query.lesson = { classId: parseInt(value) };
+            break;
+          case "teacherId":
+            query.lesson = { teacherId: value };
+            break;
+          case "search":
+            query.lesson = {
+              subject: {
+                name: { contains: value, mode: "insensitive" },
+              },
+            };
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  const [exams, count] = await prisma.$transaction([
+    prisma.exam.findMany({
+      where: query,
+      include: {
+        lesson: {
+          select: {
+            subject: { select: { name: true } },
+            class: { select: { name: true } },
+            teacher: { select: { name: true, surname: true } },
+          },
+        },
+      },
+      take: ITEM_PER_PAGE,
+      skip: (p - 1) * ITEM_PER_PAGE,
+    }),
+    prisma.exam.count({
+      where: query,
+    }),
+  ]);
 
   return (
     <div className="m-4 mt-0 flex-1 rounded-md bg-white p-4">
@@ -105,9 +166,9 @@ const ExamsListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={examsData} />
+      <Table columns={columns} renderRow={renderRow} data={exams} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination count={count} page={p} />
     </div>
   );
 };
