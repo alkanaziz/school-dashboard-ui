@@ -142,13 +142,13 @@ const SingleStudentPage = () => {
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <Link
               className="rounded-md bg-privatSkyLight p-3 text-gray-500"
-              href="/dashboard/list/teachers"
+              href={`/list/lessons?classId=${3}`}
             >
               Student's Lessons
             </Link>
             <Link
               className="rounded-md bg-privatPurpleLight p-3 text-gray-500"
-              href="/dashboard/list/teachers"
+              href={`/list/teachers?classId=${2}`}
             >
               Student's Teachers
             </Link>
