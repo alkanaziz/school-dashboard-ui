@@ -4,13 +4,11 @@ import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
 import { role, announcementsData } from "@/lib/data";
 import FormModal from "@/components/FormModal";
+import prisma from "@/lib/prisma";
+import { ITEM_PER_PAGE } from "@/lib/settings";
+import { Announcement, Class, Prisma } from "@prisma/client";
 
-type Announcement = {
-  id: number;
-  title: string;
-  class: string;
-  date: string;
-};
+type AnnouncementList = Announcement & { class: Class };
 
 const columns = [
   { header: "Title", accessor: "title" },
@@ -26,44 +24,102 @@ const columns = [
   { header: "Actions", accessor: "actions" },
 ];
 
-const AnnouncementsListPage = () => {
-  const renderRow = (item: Announcement) => (
-    <tr
-      className="border-b border-gray-300 text-sm even:bg-slate-100 hover:bg-privatPurpleLight"
-      key={item.id}
-    >
-      <td className="flex items-center gap-4 p-4">
-        <h3 className="font-semibold">{item.title}</h3>
-      </td>
-      <td>
-        <span>{item.class}</span>
-      </td>
-      <td className="hidden md:table-cell">
-        <span>{item.date}</span>
-      </td>
-      <td>
-        <div className="flex items-center gap-2">
-          {role === "admin" && (
-            <>
-              {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
-              <Image src="/edit.png" alt="edit icon" width={16} height={16} />
-            </button>
-            <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
-                <Image
-                src="/delete.png"
-                alt="delete icon"
-                width={16}
-                height={16}
-                />
-                </button> */}
-              <FormModal table="announcement" type="update" data={item} />
-              <FormModal table="announcement" type="delete" id={item.id} />
-            </>
-          )}
-        </div>
-      </td>
-    </tr>
-  );
+const renderRow = (item: AnnouncementList) => (
+  <tr
+    className="border-b border-gray-300 text-sm even:bg-slate-100 hover:bg-privatPurpleLight"
+    key={item.id}
+  >
+    <td className="flex items-center gap-4 p-4">
+      <h3 className="font-semibold">{item.title}</h3>
+    </td>
+    <td>
+      <span>{item.class.name}</span>
+    </td>
+    <td className="hidden md:table-cell">
+      <span>{new Intl.DateTimeFormat("de-DE").format(item.date)}</span>
+    </td>
+    <td>
+      <div className="flex items-center gap-2">
+        {role === "admin" && (
+          <>
+            {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
+            <Image src="/edit.png" alt="edit icon" width={16} height={16} />
+          </button>
+          <button className="flex size-7 items-center justify-center rounded-full bg-privatPurple">
+              <Image
+              src="/delete.png"
+              alt="delete icon"
+              width={16}
+              height={16}
+              />
+              </button> */}
+            <FormModal table="announcement" type="update" data={item} />
+            <FormModal table="announcement" type="delete" id={item.id} />
+          </>
+        )}
+      </div>
+    </td>
+  </tr>
+);
+
+const AnnouncementsListPage = async ({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+  console.log(searchParams);
+  const { page, ...queryParams } = searchParams;
+  const p = page ? parseInt(page) : 1;
+
+  // URL QUERY PARAMS CONDITION
+  const query: Prisma.AnnouncementWhereInput = {};
+
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (!value) {
+        delete queryParams[key];
+      } else {
+        switch (key) {
+          case "search":
+            {
+              query.OR = [
+                {
+                  title: {
+                    contains: value,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  class: {
+                    name: {
+                      contains: value,
+                      mode: "insensitive",
+                    },
+                  },
+                },
+              ];
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  const [announcements, count] = await prisma.$transaction([
+    prisma.announcement.findMany({
+      where: query,
+      include: {
+        class: true,
+      },
+      take: ITEM_PER_PAGE,
+      skip: (p - 1) * ITEM_PER_PAGE,
+    }),
+    prisma.announcement.count({
+      where: query,
+    }),
+  ]);
 
   return (
     <div className="m-4 mt-0 flex-1 rounded-md bg-white p-4">
@@ -97,9 +153,9 @@ const AnnouncementsListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={announcementsData} />
+      <Table columns={columns} renderRow={renderRow} data={announcements} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination page={p} count={count} />
     </div>
   );
 };
