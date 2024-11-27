@@ -2,12 +2,13 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
-import { role, resultsData } from "@/lib/data";
+// import { role, resultsData } from "@/lib/data";
 import Link from "next/link";
 import FormModal from "@/components/FormModal";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
+import { currentUserId, role } from "@/lib/utils";
 
 type ResultList = {
   id: number;
@@ -47,7 +48,14 @@ const columns = [
     accessor: "date",
     className: "hidden md:table-cell",
   },
-  { header: "Actions", accessor: "actions" },
+  ...(role === "admin" || role === "teacher"
+    ? [
+        {
+          header: "Actions",
+          accessor: "actions",
+        },
+      ]
+    : []),
 ];
 
 const renderRow = (item: ResultList) => (
@@ -75,7 +83,7 @@ const renderRow = (item: ResultList) => (
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {role === "admin" && (
+        {(role === "admin" || role === "teacher") && (
           <>
             {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
               <Image src="/edit.png" alt="edit icon" width={16} height={16} />
@@ -171,6 +179,26 @@ const ResultsListPage = async ({
     }
   }
 
+  // ROLE CONDITION
+  switch (role) {
+    case "admin":
+      break;
+    case "teacher":
+      query.OR = [
+        { exam: { lesson: { teacherId: currentUserId! } } },
+        { assignment: { lesson: { teacherId: currentUserId! } } },
+      ];
+      break;
+    case "student":
+      query.studentId = currentUserId!;
+      break;
+    case "parent":
+      query.student = { parentId: currentUserId! };
+      break;
+    default:
+      break;
+  }
+
   const [dataRes, count] = await prisma.$transaction([
     prisma.result.findMany({
       where: query,
@@ -246,7 +274,7 @@ const ResultsListPage = async ({
             <button className="rounded-full bg-privatYellow p-2">
               <Image src="/sort.png" alt="sort icon" width={16} height={16} />
             </button>
-            {role === "admin" && (
+            {(role === "admin" || role === "teacher") && (
               // <button className="rounded-full bg-privatYellow p-2">
               //   <Image src="/plus.png" alt="plus icon" width={16} height={16} />
               // </button>
