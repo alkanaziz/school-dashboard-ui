@@ -2,11 +2,17 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
-import { role, announcementsData } from "@/lib/data";
+// import { role, announcementsData } from "@/lib/data";
 import FormModal from "@/components/FormModal";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Announcement, Class, Prisma } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
+
+let role: string | undefined;
+auth().then(({ sessionClaims }) => {
+  role = (sessionClaims?.metadata as { role?: string })?.role;
+});
 
 type AnnouncementList = Announcement & { class: Class };
 
@@ -21,7 +27,7 @@ const columns = [
     accessor: "date",
     className: "hidden md:table-cell",
   },
-  { header: "Actions", accessor: "actions" },
+  ...(role === "admin" ? [{ header: "Actions", accessor: "actions" }] : []),
 ];
 
 const renderRow = (item: AnnouncementList) => (
