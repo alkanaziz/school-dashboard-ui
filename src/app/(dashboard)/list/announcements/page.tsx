@@ -7,7 +7,7 @@ import FormModal from "@/components/FormModal";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Announcement, Class, Prisma } from "@prisma/client";
-import { role } from "@/lib/utils";
+import { currentUserId, role } from "@/lib/utils";
 
 type AnnouncementList = Announcement & { class: Class };
 
@@ -107,6 +107,43 @@ const AnnouncementsListPage = async ({
       }
     }
   }
+
+  // ROLE CONDITION
+  switch (role) {
+    case "admin":
+      break;
+    case "teacher":
+      query.OR = [
+        { classId: null },
+        { class: { lessons: { some: { teacherId: currentUserId! } } } },
+      ];
+      break;
+    case "student":
+      query.OR = [
+        { classId: null },
+        { class: { students: { some: { id: currentUserId! } } } },
+      ];
+      break;
+    case "parent":
+      query.OR = [
+        { classId: null },
+        { class: { students: { some: { parentId: currentUserId! } } } },
+      ];
+      break;
+    default:
+      break;
+  }
+
+  // const roleConditions = {
+  //   teacher: { lessons: { some: { teacherId: currentUserId! } } },
+  //   student: { students: { some: { id: currentUserId! } } },
+  //   parent: { students: { some: { parentId: currentUserId! } } },
+  // };
+
+  // query.OR = [
+  //   { classId: null },
+  //   { class: roleConditions[role as keyof typeof roleConditions] ?? {} },
+  // ];
 
   const [announcements, count] = await prisma.$transaction([
     prisma.announcement.findMany({
