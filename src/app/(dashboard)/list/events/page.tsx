@@ -2,12 +2,13 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
-import { role, eventsData } from "@/lib/data";
+// import { role, eventsData } from "@/lib/data";
 import Link from "next/link";
 import FormModal from "@/components/FormModal";
 import { Class, Event, Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
+import { currentUserId, role } from "@/lib/utils";
 
 type EventList = Event & { class: Class };
 
@@ -32,8 +33,17 @@ const columns = [
     accessor: "endTime",
     className: "hidden md:table-cell",
   },
-  { header: "Actions", accessor: "actions" },
+  ...(role === "admin"
+    ? [
+        {
+          header: "Actions",
+          accessor: "actions",
+        },
+      ]
+    : []),
 ];
+
+console.log(role);
 
 const renderRow = (item: EventList) => (
   <tr
@@ -44,7 +54,7 @@ const renderRow = (item: EventList) => (
       <h3 className="font-semibold">{item.title}</h3>
     </td>
     <td>
-      <span>{item.class.name}</span>
+      <span>{item.class?.name || "-"}</span>
     </td>
     <td className="hidden md:table-cell">
       <span>{new Intl.DateTimeFormat("de-DE").format(item.startTime)}</span>
@@ -102,6 +112,7 @@ const EventsListPage = async ({
 
   // URL QUERY PARAMS CONDITION
   const query: Prisma.EventWhereInput = {};
+  query.class = {};
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -135,6 +146,43 @@ const EventsListPage = async ({
       }
     }
   }
+
+  // ROLE CONDITION
+  switch (role) {
+    case "admin":
+      break;
+    case "teacher":
+      query.OR = [
+        { classId: null },
+        { class: { lessons: { some: { teacherId: currentUserId! } } } },
+      ];
+      break;
+    case "student":
+      query.OR = [
+        { classId: null },
+        { class: { students: { some: { id: currentUserId! } } } },
+      ];
+      break;
+    case "parent":
+      query.OR = [
+        { classId: null },
+        { class: { students: { some: { parentId: currentUserId! } } } },
+      ];
+      break;
+    default:
+      break;
+  }
+
+  // const roleConditions = {
+  //   teacher: { class: { lessons: { some: { teacherId: currentUserId! } } } },
+  //   student: { class: { students: { some: { id: currentUserId! } } } },
+  //   parent: { class: { students: { some: { parentId: currentUserId! } } } },
+  // };
+
+  // query.OR = [
+  //   { classId: null },
+  //   roleConditions[role as keyof typeof roleConditions] || {},
+  // ];
 
   const [events, count] = await prisma.$transaction([
     prisma.event.findMany({
