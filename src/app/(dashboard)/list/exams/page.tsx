@@ -2,12 +2,13 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
-import { role, examsData } from "@/lib/data";
+// import { role, examsData } from "@/lib/data";
 import Link from "next/link";
 import FormModal from "@/components/FormModal";
 import { Class, Exam, Lesson, Prisma, Subject, Teacher } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
+import { currentUserId, role } from "@/lib/utils";
 
 type ExamList = Exam & {
   lesson: {
@@ -33,7 +34,9 @@ const columns = [
     accessor: "date",
     className: "hidden md:table-cell",
   },
-  { header: "Actions", accessor: "actions" },
+  ...(role === "admin" || role === "teacher"
+    ? [{ header: "Actions", accessor: "actions" }]
+    : []),
 ];
 
 const renderRow = (item: ExamList) => (
@@ -57,7 +60,7 @@ const renderRow = (item: ExamList) => (
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {role === "admin" && (
+        {(role === "admin" || role === "teacher") && (
           <>
             {/* <button className="flex size-7 items-center justify-center rounded-full bg-privatSky">
               <Image src="/edit.png" alt="edit icon" width={16} height={16} />
@@ -89,6 +92,7 @@ const ExamsListPage = async ({
 
   // URL QUERY PARAMS CONDITION
   const query: Prisma.ExamWhereInput = {};
+  query.lesson = {};
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -97,23 +101,61 @@ const ExamsListPage = async ({
       } else {
         switch (key) {
           case "classId":
-            query.lesson = { classId: parseInt(value) };
+            query.lesson.classId = parseInt(value);
             break;
           case "teacherId":
-            query.lesson = { teacherId: value };
+            query.lesson.teacherId = value;
             break;
           case "search":
-            query.lesson = {
-              subject: {
-                name: { contains: value, mode: "insensitive" },
+            query.OR = [
+              {
+                lesson: {
+                  subject: {
+                    name: { contains: value, mode: "insensitive" },
+                  },
+                },
               },
-            };
+              {
+                lesson: {
+                  class: {
+                    name: { contains: value, mode: "insensitive" },
+                  },
+                },
+              },
+              {
+                lesson: {
+                  teacher: {
+                    name: { contains: value, mode: "insensitive" },
+                  },
+                },
+              },
+            ];
             break;
           default:
             break;
         }
       }
     }
+  }
+
+  // ROLE CONDITION
+  switch (role) {
+    case "admin":
+      break;
+
+    case "teacher":
+      query.lesson.teacherId = currentUserId!;
+      break;
+
+    case "student":
+      query.lesson.class = { students: { some: { id: currentUserId! } } };
+      break;
+
+    case "parent":
+      query.lesson.class = { students: { some: { parentId: currentUserId! } } };
+      break;
+    default:
+      break;
   }
 
   const [exams, count] = await prisma.$transaction([
