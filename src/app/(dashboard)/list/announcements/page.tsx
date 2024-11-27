@@ -7,12 +7,7 @@ import FormModal from "@/components/FormModal";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Announcement, Class, Prisma } from "@prisma/client";
-import { auth } from "@clerk/nextjs/server";
-
-let role: string | undefined;
-auth().then(({ sessionClaims }) => {
-  role = (sessionClaims?.metadata as { role?: string })?.role;
-});
+import { role } from "@/lib/utils";
 
 type AnnouncementList = Announcement & { class: Class };
 
