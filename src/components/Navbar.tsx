@@ -1,3 +1,4 @@
+import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 
 const Navbar = () => {
@@ -16,7 +17,7 @@ const Navbar = () => {
       </div>
 
       {/* ICONS AND USER */}
-      <div className="flex items-center gap-6 justify-end w-full">
+      <div className="flex w-full items-center justify-end gap-6">
         <div className="flex size-7 items-center justify-center rounded-full bg-slate-200">
           <Image src="/message.png" alt="message icon" width={20} height={20} />
         </div>
@@ -32,20 +33,17 @@ const Navbar = () => {
           </div>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs font-bold leading-3">
-            John Doe
-          </span>
-          <span className="text-right text-[10px] text-slate-400">
-            Admin
-          </span>
+          <span className="text-xs font-bold leading-3">John Doe</span>
+          <span className="text-right text-[10px] text-slate-400">Admin</span>
         </div>
-        <Image
+        {/* <Image
           src="/avatar.png"
           alt="profile icon"
           width={36}
           height={36}
           className="rounded-full"
-        />
+        /> */}
+        <UserButton />
       </div>
     </div>
   );
