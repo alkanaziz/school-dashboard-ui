@@ -2,12 +2,13 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
-import { role, subjectsData } from "@/lib/data";
+// import { role, subjectsData } from "@/lib/data";
 import Link from "next/link";
 import FormModal from "@/components/FormModal";
 import { Prisma, Subject, Teacher } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
+import { role } from "@/lib/utils";
 
 type SubjectList = Subject & { teachers: Teacher[] };
 
